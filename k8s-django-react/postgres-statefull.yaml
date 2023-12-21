@@ -19,7 +19,7 @@ metadata:
   namespace: addex
 spec:
   serviceName: postgres
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: postgres
@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:13
+          image: postgres:15
           envFrom:
           - secretRef:
              name: postgresdb-secret
