@@ -6,16 +6,17 @@ on:
   
 
 env:
-  ECR_REGISTRY: "606861014184.dkr.ecr.us-east-1.amazonaws.com"
-  ECR_REPOSITORY: "sb-liberty"
+  ECR_REGISTRY: "239428837152.dkr.ecr.eu-south-1.amazonaws.com"
+  REACT_ECR_REPOSITORY: "react-k8s"
+  DJANGO_ECR_REPOSITORY: "django-k8s"
   IMAGE_TAG: ${{ github.sha }}
-  AWS_REGION: "us-east-1"
+  AWS_REGION: "eu-south-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
 
 
 jobs:
   docker-build:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.build_push_image.outputs.image }}
     steps:
@@ -24,13 +25,9 @@ jobs:
       - name: Configure_AWS_Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ vars.ECR_AWS_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: download_build_output
-        uses: actions/download-artifact@v3
-        with:
-          name: java_archive              
+          aws-region: ${{ env.AWS_REGION }}           
       - name: Login_to_ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -44,33 +41,24 @@ jobs:
         run: |
           pwd
           ls -ltr 
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG --build-arg="WAR_FILE=liberty" --build-arg="WAR_PATH=web" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG --build-arg="WAR_FILE=scheduler" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG
+          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG -f ./inquiring-frontend-react/frontend_react_inquiring/Dockerfile && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+          docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG -f ./backend_drf_inquiring/Dockerfile.prod && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
          
   deploy-app:
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     needs: ["docker-build"]
-    strategy:
-      matrix:
-        host: ${{ fromJson(vars.DEPLOY_HOSTS_LIBERTY) }}
     steps:
-      - name: SSH into On-Premises Docker Host
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ matrix.host }}
-          username: ${{ vars.SSH_USER}}
-          password: ${{ secrets.SSH_PASS }}
+      - name: Build_and_push_image_to_ECR
+        id: build_push_image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
           # allenvs: true
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACCESS_KEY,SECRET_KEY,DOCKER_ENV_VARS,AWS_REGION,DOCKER_HOST_PORT
+          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACCESS_KEY,SECRET_KEY,AWS_REGION
           debug: false
           script: |
             echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            [ -d ~/.aws ] || mkdir -p ~/.aws
-            echo "[default]" > ~/.aws/credentials
-            echo "aws_access_key_id=$ACCESS_KEY" >> ~/.aws/credentials
-            echo "aws_secret_access_key=$SECRET_KEY" >> ~/.aws/credentials
-            echo "cat ~/.aws/credentials"
             echo "AWS Region $AWS_REGION"
         env:
-          ACCESS_KEY: ${{ vars.ECR_AWS_ACCESS_KEY }}
+          ACCESS_KEY: ${{ secrets.ECR_AWS_ACCESS_KEY }}
           SECRET_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
