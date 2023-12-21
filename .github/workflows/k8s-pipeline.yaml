@@ -74,8 +74,9 @@ jobs:
 
       - name: Deploy to django app into EKS
         run: |
-          kubectl apply -f django-deployment.yaml
-          kubectl apply -f postgres-statefull.yaml
+           kubectl get all 
+          # kubectl apply -f django-deployment.yaml
+          # kubectl apply -f postgres-statefull.yaml
       # - name: Deploy to react app into EKS
       #   run: |
       #     kubectl apply -f django-deployment.yaml
