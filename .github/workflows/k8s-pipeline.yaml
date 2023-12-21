@@ -59,6 +59,3 @@ jobs:
           script: |
             echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             echo "AWS Region $AWS_REGION"
-        env:
-          ACCESS_KEY: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-          SECRET_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
