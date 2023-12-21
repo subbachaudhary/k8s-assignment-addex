@@ -60,3 +60,12 @@ jobs:
           script: |
             echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             echo "AWS Region $AWS_REGION"
+
+      - name: Deploy to django app into EKS
+        run: |
+          kubectl apply -f django-deployment.yaml
+          kubectl apply -f postgres-statefull.yaml
+      # - name: Deploy to react app into EKS
+      #   run: |
+      #     kubectl apply -f django-deployment.yaml
+      #     kubectl apply -f postgres-statefull.yaml
