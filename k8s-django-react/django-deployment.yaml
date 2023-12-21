@@ -3,35 +3,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django-k8s-web-deployment
+  name: django-api
+  namespace: addex
   labels:
-    app: django-k8s-web-deployment
+    app: django-api
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: django-k8s-web-deployment
+      app: django-api
   template:
     metadata:
       labels:
-        app: django-k8s-web-deployment
+        app: django-api
     spec:
+      initContainers:
+      - name: check-db-status
+        image: busybox:1.31
+        command: [ "sh", "-c" ]
+        args:
+          - |
+            while ! nc -z postgres.addex.svc.cluster.local 5432; do
+              echo "Postgres service has not started, Waiting ..."
+              sleep 6
+            done
       containers:
-      - name: django-k8s
+      - name: django-api
         image: acraks069.azurecr.io/acraks069/djaksacr:v5
         # image: nginx
         imagePullPolicy: Always
         envFrom:
           - secretRef:
-              name: djk8s-web-prod-sec
-        env:
-          - name: PORT
-            value: "8000"
-          # - name: SQL_HOST
-          #   valueFrom:
-          #     configMapKeyRef:
-          #       name: mysqldb-configmap
-          #       key: MYSQL_HOST
+             name: django-secret
+          - configMapRef:
+             name: postgresdb-configmap
         resources:
           limits:
             memory: "500Mi"
@@ -39,12 +44,39 @@ spec:
         ports:
         - containerPort: 8000
         volumeMounts:
-        - name: django-persistent-storage
-          mountPath: /djk8s
-        # imagePullSecrets:
-        # - name: oursmarketplacehub
+        - name: django-data
+          mountPath: /home/app/web/staticfiles
       
       volumes:
-      - name: django-persistent-storage
+      - name: django-data
         persistentVolumeClaim:
-          claimName: djk8s-claim
+          claimName: nfs-django-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-api
+  namespace: addex
+spec:
+  selector:
+    app: django-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: NodePort
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs-django-claim
+  namespace: addex
+spec:
+  storageClassName: efs-sc
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 15Gi
