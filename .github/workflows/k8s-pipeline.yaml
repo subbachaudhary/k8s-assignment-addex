@@ -14,36 +14,36 @@ env:
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
 
 
-# jobs:
-#   docker-build:
-#     runs-on: ubuntu-latest
-#     outputs:
-#       image: ${{ steps.build_push_image.outputs.image }}
-#     steps:
-#       - name: Checkout_Code
-#         uses: actions/checkout@v3
-#       - name: Configure_AWS_Credentials
-#         uses: aws-actions/configure-aws-credentials@v2
-#         with:
-#           aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-#           aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ env.AWS_REGION }}           
-#       - name: Login_to_ECR
-#         id: login-ecr
-#         uses: aws-actions/amazon-ecr-login@v1
-#         with:
-#           mask-password: "true"
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build_push_image.outputs.image }}
+    steps:
+      - name: Checkout_Code
+        uses: actions/checkout@v3
+      - name: Configure_AWS_Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}           
+      - name: Login_to_ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: "true"
     
-#       - name: Build_and_push_image_to_ECR
-#         id: build_push_image
-#         env:
-#           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#         run: |
-#           pwd
-#           ls -ltr 
-#           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-#            docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-#            docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
+      - name: Build_and_push_image_to_ECR
+        id: build_push_image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          pwd
+          ls -ltr 
+          echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+           docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+           docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
           
   deploy-app:
     needs: docker-build
