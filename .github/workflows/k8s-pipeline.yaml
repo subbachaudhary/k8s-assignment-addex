@@ -2,7 +2,7 @@ name: pipeline
 
 on:
   workflow_dispatch:
-  # push:
+   push:
   
 
 env:
@@ -55,7 +55,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           # allenvs: true
-          envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACCESS_KEY,SECRET_KEY,AWS_REGION
+          env: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACCESS_KEY,SECRET_KEY,AWS_REGION
           debug: false
           script: |
             echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
