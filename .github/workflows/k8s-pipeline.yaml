@@ -42,7 +42,7 @@ jobs:
           pwd
           ls -ltr 
           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-       #    docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile . && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+           docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
            docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG -f ./backend_drf_inquiring/Dockerfile.prod . && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
           
   deploy-app:
