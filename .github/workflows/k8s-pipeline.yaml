@@ -53,12 +53,7 @@ jobs:
         id: build_push_image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          debug: false
-          script: |
-            echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            echo "AWS Region $AWS_REGION"
-      
+
       - name: Set up kubectl
         run: |
           aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} 
