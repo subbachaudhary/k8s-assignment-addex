@@ -9,7 +9,7 @@ env:
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   REACT_ECR_REPOSITORY: "react-k8s"
   DJANGO_ECR_REPOSITORY: "django-k8s"
-  IMAGE_TAG: ${{ GITHUB_SHA:0:7 }}
+ # IMAGE_TAG: ${{ github.sha }}
   AWS_REGION: "eu-south-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
 
@@ -33,7 +33,14 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: "true"
-    
+      
+      - name: Calculate IMAGE_TAG
+        run: |
+          COMMIT_ID=$(echo ${GITHUB_SHA:0:7})
+          BUILD_ID=$GITHUB_RUN_NUMBER
+          IMAGE_TAG=$COMMIT_ID-$BUILD_ID
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
       - name: Build_and_push_image_to_ECR
         id: build_push_image
         env:
