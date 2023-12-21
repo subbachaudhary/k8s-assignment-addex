@@ -54,12 +54,19 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # allenvs: true
-          env: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,ACCESS_KEY,SECRET_KEY,AWS_REGION
           debug: false
           script: |
             echo $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             echo "AWS Region $AWS_REGION"
+      
+      - name: Set up kubectl
+        run: |
+          aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} 
+
+      - name: Authenticate with ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 239428837152.dkr.ecr.eu-south-1.amazonaws.com
+        
 
       - name: Deploy to django app into EKS
         run: |
