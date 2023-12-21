@@ -46,6 +46,7 @@ jobs:
            docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
           
   deploy-app:
+    needs: docker-build
     runs-on: ubuntu-latest
     steps:
 
