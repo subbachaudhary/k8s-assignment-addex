@@ -6,7 +6,7 @@ on:
   
 
 env:
-  ECR_REGISTRY: "239428837152.dkr.ecr.eu-south-1.amazonaws.com"
+  ECR_REGISTRY: ${{ secret.ECR_REGISTRY }}
   REACT_ECR_REPOSITORY: "react-k8s"
   DJANGO_ECR_REPOSITORY: "django-k8s"
   IMAGE_TAG: ${{ github.sha }}
