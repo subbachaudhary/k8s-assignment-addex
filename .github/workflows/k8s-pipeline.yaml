@@ -9,7 +9,7 @@ env:
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   REACT_ECR_REPOSITORY: "react-k8s"
   DJANGO_ECR_REPOSITORY: "django-k8s"
-  IMAGE_TAG: ${{ github.sha:0:8 }}
+  IMAGE_TAG: ${GITHUB_SHA:0:7}
   AWS_REGION: "eu-south-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
 
