@@ -11,50 +11,11 @@ env:
   IMAGE_TAG: ${{ github.sha }}
   AWS_REGION: "us-east-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
-  DOCKER_ENV_VARS: "-e LIBERTY_DB_USER=${{ vars.LIBERTY_DB_USER }} -e LIBERTY_DB_PASS=${{ secrets.LIBERTY_DB_PASS }} -e POSTGRES_DB_USER=${{ vars.POSTGRES_DB_USER }} -e POSTGRES_DB_PASS=${{ secrets.POSTGRES_DB_PASS }} -e LIBERTYPOSTGRES_DB_USER=${{ vars.LIBERTYPOSTGRES_DB_USER }} -e LIBERTYPOSTGRES_DB_PASS=${{ secrets.LIBERTYPOSTGRES_DB_PASS }}"
-  DOCKER_HOST_PORT: 18010
+
 
 jobs:
-  maven-build:
-    runs-on: [self-hosted, Linux]
-    steps:
-      - name: Checkout_Code
-        uses: actions/checkout@v3
-      - name: Setup_JAVA
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-      - name: Create_m2_files
-        run: |
-          echo $SETTINGS_XML > ~/.m2/settings.xml
-          echo $SECURITY_XML > ~/.m2/settings-security.xml
-          ls -ltr ~/.m2
-        env:
-          SETTINGS_XML: ${{ secrets.SETTINGS_XML }}
-          SECURITY_XML: ${{ secrets.SECURITY_XML }}
-      - name: Application_Build_with_Maven
-        env:
-          JAVA_OPTS: -Xmx2g
-        run: |
-          # mvn clean install -Pprod -B -DskipTests package
-          export PATH=$PATH:/opt/Sencha/Cmd/3.1.2.342:/opt/ruby/bin
-          mvn clean install -Pprod -DskipTests
-      - name: upload_build_output
-        uses: actions/upload-artifact@v3
-        with:
-          name: java_archive
-          if-no-files-found: error
-          path: |
-            liberty-web/target/liberty.war
-            liberty-scheduler/target/scheduler.war
-            liberty-touch/target/touch.war
-            liberty-claims/target/claims.war
-            liberty-pricing/target/pricing.war
-            liberty-refresh/target/liberty-refresh.war
-            liberty-admin/target/admin.war
   docker-build:
     runs-on: [self-hosted, Linux]
-    needs: ["maven-build"]
     outputs:
       image: ${{ steps.build_push_image.outputs.image }}
     steps:
@@ -85,11 +46,7 @@ jobs:
           ls -ltr 
           docker build -t $REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG --build-arg="WAR_FILE=liberty" --build-arg="WAR_PATH=web" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG
           docker build -t $REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG --build-arg="WAR_FILE=scheduler" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_touch:$IMAGE_TAG --build-arg="WAR_FILE=touch" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_touch:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_claims:$IMAGE_TAG --build-arg="WAR_FILE=claims" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_claims:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_pricing:$IMAGE_TAG --build-arg="WAR_FILE=pricing" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_pricing:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_admin:$IMAGE_TAG --build-arg="WAR_FILE=admin" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_admin:$IMAGE_TAG
-          docker build -t $REGISTRY/${ECR_REPOSITORY}_liberty-refresh:$IMAGE_TAG --build-arg="WAR_FILE=liberty-refresh" --build-arg="WAR_PATH=refresh" --build-arg="JETTY_FILE=jetty-liberty-prod.xml" . && docker push $REGISTRY/${ECR_REPOSITORY}_liberty-refresh:$IMAGE_TAG
+         
   deploy-app:
     runs-on: [self-hosted, Linux]
     needs: ["docker-build"]
@@ -114,23 +71,6 @@ jobs:
             echo "aws_secret_access_key=$SECRET_KEY" >> ~/.aws/credentials
             echo "cat ~/.aws/credentials"
             echo "AWS Region $AWS_REGION"
-            aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $ECR_REGISTRY
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_touch:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_claims:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_pricing:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_admin:$IMAGE_TAG
-            sudo docker pull $ECR_REGISTRY/${ECR_REPOSITORY}_liberty-refresh:$IMAGE_TAG
-            sudo docker stop liberty scheduler touch claims pricing liberty-refresh  admin || true
-            sudo docker rm liberty scheduler touch claims pricing liberty-refresh  admin || true
-            sudo docker run -d --name liberty $DOCKER_ENV_VARS -p 16010:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_liberty:$IMAGE_TAG
-            sudo docker run -d --name scheduler $DOCKER_ENV_VARS -p 16020:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_scheduler:$IMAGE_TAG
-            sudo docker run -d --name touch $DOCKER_ENV_VARS -p 16030:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_touch:$IMAGE_TAG
-            sudo docker run -d --name claims $DOCKER_ENV_VARS -p 16040:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_claims:$IMAGE_TAG
-            sudo docker run -d --name pricing $DOCKER_ENV_VARS -p 16050:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_pricing:$IMAGE_TAG
-            sudo docker run -d --name liberty-refresh $DOCKER_ENV_VARS -p 16060:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_liberty-refresh:$IMAGE_TAG
-            sudo docker run -d --name admin $DOCKER_ENV_VARS -p 16070:8080 $ECR_REGISTRY/${ECR_REPOSITORY}_admin:$IMAGE_TAG
         env:
           ACCESS_KEY: ${{ vars.ECR_AWS_ACCESS_KEY }}
           SECRET_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
