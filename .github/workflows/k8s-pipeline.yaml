@@ -1,8 +1,8 @@
-name: pipeline
+name: pipeline for the reactjs and django app
 
 on:
   workflow_dispatch:
-   push:
+  # push:
   
 
 env:
@@ -47,6 +47,7 @@ jobs:
           
   deploy-app:
     runs-on: ubuntu-latest
+    
       - name: Set up kubectl
         run: |
           aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} 
