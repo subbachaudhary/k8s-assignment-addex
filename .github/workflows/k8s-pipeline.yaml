@@ -51,8 +51,8 @@ jobs:
           pwd
           ls -ltr 
           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-          #docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
-          docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
           
   deploy-app:
     needs: docker-build
@@ -82,11 +82,10 @@ jobs:
           aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
 
       - name: Deploy to django app into EKS
+        env:
+           REACT_IMAGE: $ECR_REGISTRY/REACT_ECR_REPOSITORY
+           DJANGO_IMAGE: $ECR_REGISTRY/DJANGO_ECR_REPOSITORY
         run: |
            kubectl get all 
-          # kubectl apply -f django-deployment.yaml
-          # kubectl apply -f postgres-statefull.yaml
-      # - name: Deploy to react app into EKS
-      #   run: |
-      #     kubectl apply -f django-deployment.yaml
-      #     kubectl apply -f postgres-statefull.yaml
+           sed -i "s/$REACT_IMAGE.*/$REACT_IMAGE:v$IMAGE_TAG/g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
+           kubectl apply -f k8s-django-react/reactjs-manifeast/react-deployment.yaml

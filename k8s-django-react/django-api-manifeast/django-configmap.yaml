@@ -4,14 +4,10 @@ metadata:
   name: postgresdb-configmap
   namespace: addex
 data:
-  # SQL_ENGINE: "django.db.backends.postgresql"
-  # SQL_HOST: "postgres.addex.svc.cluster.local"
-  # SQL_PORT: "5432"
-  # DATABASE: "postgres"
-  SQL_ENGINE: ""
-  SQL_HOST: ""
-  SQL_PORT: ""
-  DATABASE: ""
+  SQL_ENGINE: "django.db.backends.postgresql"
+  SQL_HOST: "postgres.addex.svc.cluster.local"
+  SQL_PORT: "5432"
+  DATABASE: "postgres"
   DEBUG: "1"
   DJANGO_ALLOWED_HOSTS: "['localhost','127.0.0.1','https://api.cloudyninjas.com']"
-  # CORS_ALLOWED_ORIGINS: "['https://task.cloudyninjas.com','http://localhost','http://127.0.0.1:3000']"
+  CORS_ALLOWED_ORIGINS: "['https://task.cloudyninjas.com','http://localhost','http://127.0.0.1:3000']"
