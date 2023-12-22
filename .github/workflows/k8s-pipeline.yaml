@@ -2,7 +2,9 @@ name: pipeline for the reactjs and django app
 
 on:
   workflow_dispatch:
-  # push:
+  push:
+    branches:
+      - main 
   
 
 env:
