@@ -29,7 +29,7 @@ spec:
             done
       containers:
       - name: django-api
-        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:v06b0eb1-40
+        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:v8d56be7-44
         # image: nginx
         imagePullPolicy: Always
         envFrom:

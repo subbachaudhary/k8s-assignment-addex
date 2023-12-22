@@ -40,13 +40,13 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = int(os.environ.get("DEBUG", default=0))
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:3000',
-#     'http://frontend:80',
-#     'http://localhost',
-#     'http://127.0.0.1:3000'
-# ]
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS").split(" ")
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'https://task.cloudyninjas.com',
+    'http://localhost',
+    'http://127.0.0.1:3000'
+]
+# CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS").split(" ")
 CORS_ALLOW_CREDENTIALS = True
 # Application definition
 

@@ -14,4 +14,4 @@ data:
   DATABASE: ""
   DEBUG: "1"
   DJANGO_ALLOWED_HOSTS: "['localhost','127.0.0.1','https://api.cloudyninjas.com']"
-  CORS_ALLOWED_ORIGINS: "['https://task.cloudyninjas.com','http://localhost','http://127.0.0.1:3000']"
+  # CORS_ALLOWED_ORIGINS: "['https://task.cloudyninjas.com','http://localhost','http://127.0.0.1:3000']"
