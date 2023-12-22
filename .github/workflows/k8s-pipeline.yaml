@@ -20,7 +20,10 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     outputs:
-      imagetag: ${{ steps.image-tag.outputs.imagetag }}
+      REACT_IMAGE: ${{ steps.build_push_image.REACT_IMAGE }}
+      REACT_REPO: ${{ steps.build_push_image.REACT_REPO }}
+      DJANGO_IMAGE: ${{ steps.build_push_image.DJANGO_IMAGE }}
+      DJANGO_REPO: ${{ steps.build_push_image.DJANGO_REPO }}
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
@@ -43,7 +46,6 @@ jobs:
           BUILD_ID=$GITHUB_RUN_NUMBER
           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "imagetag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build_and_push_image_to_ECR
         id: build_push_image
@@ -55,6 +57,10 @@ jobs:
           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
           docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
           # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+          echo "REACT_IMAGE=$REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "REACT_REPO=$REGISTRY/${REACT_ECR_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DJANGO_IMAGE=$REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "DJANGO_REPO=$REGISTRY/${DJANGO_ECR_REPOSITORY}" >> $GITHUB_OUTPUT
           
   deploy-app:
     needs: docker-build
@@ -86,11 +92,14 @@ jobs:
 
       - name: Deploy to django app into EKS
         env:
-           REACT_IMAGE: $ECR_REGISTRY/REACT_ECR_REPOSITORY
-           DJANGO_IMAGE: $ECR_REGISTRY/DJANGO_ECR_REPOSITORY
-           IMAGE_TAG:  ${{ needs.docker-build.outputs.imagetag }}
+           DJANGO_IMAGE: ${{ needs.docker-build.outputs.DJANGO_IMAGE }}
+           DJANGO_REPO: ${{ needs.docker-build.outputs.DJANGO_REPO }}
+           REACT_IMAGE:  ${{ needs.docker-build.outputs.REACT_IMAGE }}
+           REACT_REPO:  ${{ needs.docker-build.outputs.REACT_REPO }}
         run: |
            kubectl get all 
-           echo $REACT_IMAGE
-           sed -i.bak "s|$REACT_IMAGE.*|$REACT_IMAGE:v$IMAGE_TAG|g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
+           echo $REACT_IMAGE $REACT_REPO
+           pwd 
+           ls -al
+           sed -i.bak "s|$REACT_REPO.*|$REACT_IMAGE|g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
            kubectl apply -f k8s-django-react/reactjs-manifeast/react-deployment.yaml
