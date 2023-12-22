@@ -98,6 +98,7 @@ jobs:
            REACT_REPO:  ${{ needs.docker-build.outputs.REACT_REPO }}
         run: |
            kubectl get all 
+           echo ${{ needs.docker-build.outputs.REACT_IMAGE }} ${{ needs.docker-build.outputs.REACT_REPO }}
            echo ${{ env.REACT_IMAGE }} ${{ env.REACT_REPO }}
            pwd 
            ls -al
