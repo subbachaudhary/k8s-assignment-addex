@@ -20,7 +20,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.build_push_image.outputs.image }}
+      imagetag: ${{ steps.image-tag.outputs.imagetag }}
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
@@ -37,11 +37,13 @@ jobs:
           mask-password: "true"
       
       - name: Calculate IMAGE_TAG
+        id: image-tag
         run: |
           COMMIT_ID=$(echo ${GITHUB_SHA:0:7})
           BUILD_ID=$GITHUB_RUN_NUMBER
           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "imagetag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build_and_push_image_to_ECR
         id: build_push_image
@@ -86,6 +88,7 @@ jobs:
         env:
            REACT_IMAGE: $ECR_REGISTRY/REACT_ECR_REPOSITORY
            DJANGO_IMAGE: $ECR_REGISTRY/DJANGO_ECR_REPOSITORY
+           IMAGE_TAG:  ${{ needs.docker-build.outputs.imagetag }}
         run: |
            kubectl get all 
            echo $REACT_IMAGE
