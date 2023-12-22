@@ -13,7 +13,7 @@ env:
   DJANGO_ECR_REPOSITORY: "django-k8s"
   IMAGE_REACT: ${{ secrets.ECR_REGISTRY }}/react-k8s
   IMAGE_DJANGO: ${{ secrets.ECR_REGISTRY }}/django-k8s
- # IMAGE_TAG: ${{ github.sha }}
+  IMAGE_TAGS: ${{ github.sha }}
   AWS_REGION: "eu-south-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
 
@@ -46,7 +46,7 @@ jobs:
           BUILD_ID=$GITHUB_RUN_NUMBER
           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAG=$IMAGE_TAGS" >> $GITHUB_OUTPUT
 
       - name: Build_and_push_image_to_ECR
         id: build_push_image
@@ -100,5 +100,5 @@ jobs:
            echo "Debuging ......................Debuging"
            pwd 
            ls -al
-           sed -i.bak "s|${{ env.REACT_REPO }}.*|${{ env.REACT_IMAGE }}|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
-           kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
+          #  sed -i.bak "s|${{ env.REACT_REPO }}.*|${{ env.REACT_IMAGE }}|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
+          #  kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
