@@ -22,7 +22,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_TAG: ${{ steps.image-tag.IMAGE_TAG }}
+      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
      
     steps:
       - name: Checkout_Code
