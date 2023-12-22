@@ -63,7 +63,7 @@ jobs:
           echo "DJANGO_REPO=$REGISTRY/${DJANGO_ECR_REPOSITORY}" >> $GITHUB_OUTPUT
           
   deploy-app:
-    needs: docker-build
+    needs:  ["docker-build"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout_Code
@@ -98,8 +98,10 @@ jobs:
            REACT_REPO:  ${{ needs.docker-build.outputs.REACT_REPO }}
         run: |
            kubectl get all 
+           echo "Debuging ......................Debuging"
            echo ${{ needs.docker-build.outputs.REACT_IMAGE }} ${{ needs.docker-build.outputs.REACT_REPO }}
            echo ${{ env.REACT_IMAGE }} ${{ env.REACT_REPO }}
+           echo "Debuging ......................Debuging"
            pwd 
            ls -al
            sed -i.bak "s|${{ env.REACT_REPO }}.*|${{ env.REACT_IMAGE }}|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
