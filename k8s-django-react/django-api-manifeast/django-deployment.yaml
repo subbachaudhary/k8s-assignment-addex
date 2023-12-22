@@ -1,0 +1,82 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-api
+  namespace: addex
+  labels:
+    app: django-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django-api
+  template:
+    metadata:
+      labels:
+        app: django-api
+    spec:
+      initContainers:
+      - name: check-db-status
+        image: busybox:1.31
+        command: [ "sh", "-c" ]
+        args:
+          - |
+            while ! nc -z postgres.addex.svc.cluster.local 5432; do
+              echo "Postgres service has not started, Waiting ..."
+              sleep 6
+            done
+      containers:
+      - name: django-api
+        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:v06b0eb1-40
+        # image: nginx
+        imagePullPolicy: Always
+        envFrom:
+          - secretRef:
+             name: django-secret
+          - configMapRef:
+             name: postgresdb-configmap
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "600m"
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: django-data
+          mountPath: /home/app/web/staticfiles
+      
+      volumes:
+      - name: django-data
+        persistentVolumeClaim:
+          claimName: nfs-django-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-api
+  namespace: addex
+spec:
+  selector:
+    app: django-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: NodePort
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nfs-django-claim
+  namespace: addex
+spec:
+  storageClassName: efs-sc
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 15Gi

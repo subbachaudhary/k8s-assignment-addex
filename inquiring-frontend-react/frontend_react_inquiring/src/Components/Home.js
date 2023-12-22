@@ -6,7 +6,7 @@ import Axios from 'axios';
 import call_query from '../call-query.avif'
 
 
-const baseUrl = "http://localhost:8000/api/inquiry-create/";
+const baseUrl = "https://api.cloudyninjas.com/api/inquiry-create/";
 
 function App() {
   const [data, setData] = useState({

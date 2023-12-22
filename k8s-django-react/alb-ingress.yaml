@@ -47,7 +47,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: django-api
+                name: react-web
                 port: 
                   number: 80
     - host: api.cloudyninjas.com

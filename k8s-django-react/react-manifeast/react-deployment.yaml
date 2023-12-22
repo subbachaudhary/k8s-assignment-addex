@@ -3,75 +3,70 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django-api
+  name: react-web
   namespace: addex
   labels:
-    app: django-api
+    app: react-web
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      app: django-api
+      app: react-web
   template:
     metadata:
       labels:
-        app: django-api
+        app: react-web
     spec:
       initContainers:
-      - name: check-db-status
+      - name: check-api-status
         image: busybox:1.31
         command: [ "sh", "-c" ]
         args:
           - |
-            while ! nc -z postgres.addex.svc.cluster.local 5432; do
-              echo "Postgres service has not started, Waiting ..."
+            while ! nc -z django-api.addex.svc.cluster.local 8000; do
+              echo "Django API service has not started, Waiting ..."
               sleep 6
             done
       containers:
-      - name: django-api
-        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:76e94f6-38
+      - name: react-web
+        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:v06b0eb1-40
         # image: nginx
         imagePullPolicy: Always
-        envFrom:
-          - secretRef:
-             name: django-secret
-          - configMapRef:
-             name: postgresdb-configmap
         resources:
           limits:
             memory: "500Mi"
             cpu: "600m"
         ports:
-        - containerPort: 8000
+        - containerPort: 80
         volumeMounts:
-        - name: django-data
-          mountPath: /home/app/web/staticfiles
+        - name: react-data
+          mountPath: /usr/share/nginx/html
       
       volumes:
-      - name: django-data
+      - name: react-data
         persistentVolumeClaim:
-          claimName: nfs-django-claim
+          claimName: nfs-react-claim
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: django-api
+  name: react-web
   namespace: addex
 spec:
   selector:
-    app: django-api
+    app: react-web
   ports:
     - protocol: TCP
-      port: 8000
-      targetPort: 8000
+      port: 80
+      targetPort: 80
   type: NodePort
 
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: nfs-django-claim
+  name: nfs-react-claim
   namespace: addex
 spec:
   storageClassName: efs-sc
