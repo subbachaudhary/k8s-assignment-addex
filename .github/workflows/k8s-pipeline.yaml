@@ -22,10 +22,8 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     outputs:
-      REACT_IMAGE: ${{ steps.build_push_image.REACT_IMAGE }}
-      REACT_REPO: ${{ steps.build_push_image.REACT_REPO }}
-      DJANGO_IMAGE: ${{ steps.build_push_image.DJANGO_IMAGE }}
-      DJANGO_REPO: ${{ steps.build_push_image.DJANGO_REPO }}
+      IMAGE_TAG: ${{ steps.image-tag.IMAGE_TAG }}
+     
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
@@ -48,6 +46,7 @@ jobs:
           BUILD_ID=$GITHUB_RUN_NUMBER
           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build_and_push_image_to_ECR
         id: build_push_image
@@ -93,17 +92,11 @@ jobs:
           aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
 
       - name: Deploy to django app into EKS
-        env:
-           DJANGO_IMAGE: ${{ needs.docker-build.outputs.DJANGO_IMAGE }}
-           DJANGO_REPO: ${{ needs.docker-build.outputs.DJANGO_REPO }}
-           REACT_IMAGE:  ${{ needs.docker-build.outputs.REACT_IMAGE }}
-           REACT_REPO:  ${{ needs.docker-build.outputs.REACT_REPO }}
         run: |
            kubectl get all 
            echo "Debuging ......................Debuging"
            echo ${IMAGE_REACT} ${IMAGE_DJANGO}
-           echo ${{ needs.docker-build.outputs.REACT_IMAGE }} ${{ needs.docker-build.outputs.REACT_REPO }}
-           echo ${{ env.REACT_IMAGE }} ${{ env.REACT_REPO }}
+           echo ${IMAGE_TAG}
            echo "Debuging ......................Debuging"
            pwd 
            ls -al
