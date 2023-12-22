@@ -89,5 +89,5 @@ jobs:
         run: |
            kubectl get all 
            echo $REACT_IMAGE
-           sed -i.bak "s/$REACT_IMAGE.*/$REACT_IMAGE:v$IMAGE_TAG/g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
+           sed -i.bak "s|$REACT_IMAGE.*|$REACT_IMAGE:v$IMAGE_TAG|g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
            kubectl apply -f k8s-django-react/reactjs-manifeast/react-deployment.yaml
