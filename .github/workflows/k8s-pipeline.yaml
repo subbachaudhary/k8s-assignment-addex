@@ -11,6 +11,8 @@ env:
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   REACT_ECR_REPOSITORY: "react-k8s"
   DJANGO_ECR_REPOSITORY: "django-k8s"
+  IMAGE_REACT: ${{ secrets.ECR_REGISTRY }}/react-k8s
+  IMAGE_DJANGO: ${{ secrets.ECR_REGISTRY }}/django-k8s
  # IMAGE_TAG: ${{ github.sha }}
   AWS_REGION: "eu-south-1"
   # DOCKER_ENV_VARS: "-e DB_USER=${{ vars.DB_USER }} -e DB_PASS=${{ secrets.DB_PASS }}"
@@ -99,6 +101,7 @@ jobs:
         run: |
            kubectl get all 
            echo "Debuging ......................Debuging"
+           echo ${IMAGE_REACT} ${IMAGE_DJANGO}
            echo ${{ needs.docker-build.outputs.REACT_IMAGE }} ${{ needs.docker-build.outputs.REACT_REPO }}
            echo ${{ env.REACT_IMAGE }} ${{ env.REACT_REPO }}
            echo "Debuging ......................Debuging"
