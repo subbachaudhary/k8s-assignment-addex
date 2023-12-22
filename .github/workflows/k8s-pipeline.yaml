@@ -58,7 +58,8 @@ jobs:
     needs: docker-build
     runs-on: ubuntu-latest
     steps:
-      
+      - name: Checkout_Code
+        uses: actions/checkout@v3
       - name: Loging in the ECR Registry
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -87,5 +88,6 @@ jobs:
            DJANGO_IMAGE: $ECR_REGISTRY/DJANGO_ECR_REPOSITORY
         run: |
            kubectl get all 
-           sed -i "s/$REACT_IMAGE.*/$REACT_IMAGE:v$IMAGE_TAG/g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
+           echo $REACT_IMAGE
+           sed -i.bak "s/$REACT_IMAGE.*/$REACT_IMAGE:v$IMAGE_TAG/g" k8s-django-react/reactjs-manifeast/react-deployment.yaml
            kubectl apply -f k8s-django-react/reactjs-manifeast/react-deployment.yaml

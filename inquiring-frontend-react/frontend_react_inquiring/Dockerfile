@@ -22,7 +22,6 @@ FROM nginx:stable-alpine as production-stage
 # Copy the built frontend files to the Nginx server directory
 COPY --from=build-stage /app/build /usr/share/nginx/html
 COPY nginx-conf/nginx.conf /etc/nginx/conf.d/default.conf
-RUN chmod -R 777 /usr/share/nginx/html
 # Expose port 80 for Nginx
 EXPOSE 80
 
