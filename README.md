@@ -66,6 +66,7 @@ Load balancer is used in the ingress and domain is attached to that load balance
 
 So, the domain names are given below:
 https://task.cloudyninjas.com/
+
 https://api.cloudyninjas.com/(access only from front end app)
 
 
