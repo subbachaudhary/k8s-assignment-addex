@@ -29,13 +29,13 @@ spec:
             done
       containers:
       - name: react-web
-        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/django-k8s:v06b0eb1-40
+        image: 239428837152.dkr.ecr.eu-south-1.amazonaws.com/react-k8s:v6cfad89-42
         # image: nginx
         imagePullPolicy: Always
-        resources:
-          limits:
-            memory: "500Mi"
-            cpu: "600m"
+        # resources:
+        #   limits:
+        #     memory: "500Mi"
+        #     cpu: "600m"
         ports:
         - containerPort: 80
         volumeMounts:
