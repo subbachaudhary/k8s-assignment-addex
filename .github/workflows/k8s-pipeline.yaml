@@ -48,16 +48,16 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAGS=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # - name: Build_and_push_image_to_ECR
-      #   id: build_push_image
-      #   env:
-      #     REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #   run: |
-      #     pwd
-      #     ls -ltr 
-      #     echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-      #     docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
-      #     # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+      - name: Build_and_push_image_to_ECR
+        id: build_push_image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          pwd
+          ls -ltr 
+          echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
         
           
   deploy-app:
@@ -93,9 +93,10 @@ jobs:
            kubectl get all 
            echo "Debuging ......................Debuging"
            echo ${IMAGE_REACT} ${IMAGE_DJANGO}
+           TAG=${{ needs.docker-build.outputs.IMAGE_TAG }}
            echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
            echo "Debuging ......................Debuging"
            pwd 
            ls -al
-          #  sed -i.bak "s|${{ env.REACT_REPO }}.*|${{ env.REACT_IMAGE }}|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
+           sed -i.bak "s|${IMAGE_REACT}.*|${IMAGE_REACT}:v$TAG|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
           #  kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
