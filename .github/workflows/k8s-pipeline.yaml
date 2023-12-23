@@ -38,11 +38,13 @@ jobs:
             - './backend_drf_inquiring/**'
     # run only if 'workflows' files were changed
     - name: workflow tests
+      id: ok
       if: steps.react_changes.outputs.src == 'true'
       run: echo "Changes made in react src"
 
     # run only if not 'workflows' files were changed
     - name: not workflow tests
+      id: not
       if: steps.react_changes.outputs.src != 'true'
       run: echo "No any Changes made in react src"
 
