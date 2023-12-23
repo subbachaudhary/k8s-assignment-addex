@@ -74,7 +74,6 @@ jobs:
 
       - name: React_Build_and_push_image_to_ECR
         id: react_build_push_image
-        # if: ${{ needs.paths-filter.outputs.output1 }} == 'true'
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
@@ -91,7 +90,6 @@ jobs:
       
       - name: API_Build_and_push_image_to_ECR
         id: api_build_push_image
-        # if: ${{ needs.paths-filter.outputs.output2 }} == 'true'
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
