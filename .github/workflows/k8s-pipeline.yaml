@@ -46,58 +46,58 @@ jobs:
       if: steps.react_changes.outputs.src != 'true'
       run: echo "No any Changes made in react src"
 
-  # docker-build:
-  #   needs: ["paths-filter"]
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAGS }}    
-  #   steps:
-  #     - name: Checkout_Code
-  #       uses: actions/checkout@v3
-  #     - name: Configure_AWS_Credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-  #         aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ env.AWS_REGION }}           
-  #     - name: Login_to_ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v1
-  #       with:
-  #         mask-password: "true"
+  docker-build:
+    needs: ["paths-filter"]
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAGS }}    
+    steps:
+      - name: Checkout_Code
+        uses: actions/checkout@v3
+      - name: Configure_AWS_Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}           
+      - name: Login_to_ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: "true"
       
-  #     - name: Calculate IMAGE_TAG
-  #       id: image-tag
-  #       run: |
-  #         COMMIT_ID=$(echo ${GITHUB_SHA:0:7})
-  #         BUILD_ID=$GITHUB_RUN_NUMBER
-  #         IMAGE_TAG=$COMMIT_ID-$BUILD_ID
-  #         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-  #         echo "IMAGE_TAGS=$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Calculate IMAGE_TAG
+        id: image-tag
+        run: |
+          COMMIT_ID=$(echo ${GITHUB_SHA:0:7})
+          BUILD_ID=$GITHUB_RUN_NUMBER
+          IMAGE_TAG=$COMMIT_ID-$BUILD_ID
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_TAGS=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  #     - name: React_Build_and_push_image_to_ECR
-  #       id: react_build_push_image
-  #       if: ${{ needs.paths-filter.outputs.output1 }}== 'true'
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #       run: |
-  #         pwd
-  #         ls -ltr 
-  #         echo "Building image of react ..."
-  #         echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-  #         docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+      - name: React_Build_and_push_image_to_ECR
+        id: react_build_push_image
+        if: ${{ needs.paths-filter.outputs.output1 }} == 'true'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          pwd
+          ls -ltr 
+          echo "Building image of react ..."
+          echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
       
-  #     - name: API_Build_and_push_image_to_ECR
-  #       id: api_build_push_image
-  #       if: ${{ needs.paths-filter.outputs.output2 }}== 'true'
-  #       env:
-  #         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-  #       run: |
-  #         pwd
-  #         ls -ltr 
-  #         echo "Building image of django api ..."
-  #         echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
-  #         docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+      - name: API_Build_and_push_image_to_ECR
+        id: api_build_push_image
+        if: ${{ needs.paths-filter.outputs.output2 }} == 'true'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          pwd
+          ls -ltr 
+          echo "Building image of django api ..."
+          echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
+          docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
           
           
   # deploy-app:
