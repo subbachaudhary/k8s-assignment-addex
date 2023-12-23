@@ -98,7 +98,7 @@ jobs:
            echo "Debuging ......................Debuging"
            pwd 
            ls -al
-           cat ./k8s-django-react/react-manifest/react-deployment.yaml
+           cat ./k8s-django-react/react-manifeast/react-deployment.yaml
            sed -i.bak "s|${IMAGE_REACT}.*|${IMAGE_REACT}:v$TAG|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
-           cat ./k8s-django-react/react-manifest/react-deployment.yaml
+           cat ./k8s-django-react/react-manifeast/react-deployment.yaml
           #  kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
