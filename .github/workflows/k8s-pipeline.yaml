@@ -79,29 +79,35 @@ jobs:
 
       - name: React_Build_and_push_image_to_ECR
         id: react_build_push_image
-        if: ${{ needs.paths-filter.outputs.output1 }} == 'true'
+        # if: ${{ needs.paths-filter.outputs.output1 }} == 'true'
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           pwd
           ls -ltr 
-          echo "Building image of react ..."
-          echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-          echo ${{ needs.paths-filter.outputs.output1 }}
-          # docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+          if [[ ${{ needs.paths-filter.outputs.output1 }} == "true" ]] ; then
+            echo "Building image of react ..."
+            echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+            echo ${{ needs.paths-filter.outputs.output1 }}
+            # docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+          fi
+         
       
       - name: API_Build_and_push_image_to_ECR
         id: api_build_push_image
-        if: ${{ needs.paths-filter.outputs.output2 }} == 'true'
+        # if: ${{ needs.paths-filter.outputs.output2 }} == 'true'
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           pwd
           ls -ltr 
-          echo "Building image of django api ..."
-          echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
-          echo ${{ needs.paths-filter.outputs.output2 }}
-          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+          if [[ ${{ needs.paths-filter.outputs.output2 }} == "true" ]] ; then
+              echo "Building image of django api ..."
+              echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
+              echo ${{ needs.paths-filter.outputs.output2 }}
+              # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+          fi
+         
           
           
   # deploy-app:
