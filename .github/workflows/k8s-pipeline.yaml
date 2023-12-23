@@ -22,7 +22,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
+      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAGS }}
      
     steps:
       - name: Checkout_Code
@@ -46,22 +46,19 @@ jobs:
           BUILD_ID=$GITHUB_RUN_NUMBER
           IMAGE_TAG=$COMMIT_ID-$BUILD_ID
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$IMAGE_TAGS" >> $GITHUB_OUTPUT
+          echo "IMAGE_TAGS=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Build_and_push_image_to_ECR
-        id: build_push_image
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          pwd
-          ls -ltr 
-          echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
-          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
-          echo "REACT_IMAGE=$REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "REACT_REPO=$REGISTRY/${REACT_ECR_REPOSITORY}" >> $GITHUB_OUTPUT
-          echo "DJANGO_IMAGE=$REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "DJANGO_REPO=$REGISTRY/${DJANGO_ECR_REPOSITORY}" >> $GITHUB_OUTPUT
+      # - name: Build_and_push_image_to_ECR
+      #   id: build_push_image
+      #   env:
+      #     REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #   run: |
+      #     pwd
+      #     ls -ltr 
+      #     echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
+      #     docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+      #     # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+        
           
   deploy-app:
     needs:  ["docker-build"]
@@ -69,34 +66,34 @@ jobs:
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
-      - name: Loging in the ECR Registry
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+      # - name: Loging in the ECR Registry
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+      #     aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
 
-      - name: Authenticate with ECR
-        run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 239428837152.dkr.ecr.eu-south-1.amazonaws.com
+      # - name: Authenticate with ECR
+      #   run: |
+      #     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
         
-      - name: Loging in the EKS Cluster
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+      # - name: Loging in the EKS Cluster
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
+      #     aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up kubectl
-        run: |
-          aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
+      # - name: Set up kubectl
+      #   run: |
+      #     aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
 
       - name: Deploy to django app into EKS
         run: |
            kubectl get all 
            echo "Debuging ......................Debuging"
            echo ${IMAGE_REACT} ${IMAGE_DJANGO}
-           echo ${IMAGE_TAG}
+           echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
            echo "Debuging ......................Debuging"
            pwd 
            ls -al
