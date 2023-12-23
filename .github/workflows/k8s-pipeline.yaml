@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - main 
-  
-
 env:
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   REACT_ECR_REPOSITORY: "react-k8s"
@@ -19,11 +17,31 @@ env:
 
 
 jobs:
-  docker-build:
+  paths-filter:
     runs-on: ubuntu-latest
     outputs:
-      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAGS }}
-     
+      output1: ${{ steps.react_changes.outputs.src }}
+      output2: ${{ steps.api_changes.outputs.src }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: react_changes
+      with:
+        filters: |
+          src:
+            - './inquiring-frontend-react/frontend_react_inquiring/**'
+    - uses: dorny/paths-filter@v2
+      id: api_changes
+      with:
+        filters: |
+          src:
+            - './backend_drf_inquiring/**'
+
+  docker-build:
+    needs: ["paths-filter"]
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAGS }}    
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
@@ -48,64 +66,77 @@ jobs:
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
           echo "IMAGE_TAGS=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Build_and_push_image_to_ECR
-        id: build_push_image
+      - name: React_Build_and_push_image_to_ECR
+        id: react_build_push_image
+        if: ${{ needs.paths-filter.outputs.output1 }}== 'true'
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           pwd
           ls -ltr 
+          echo "Building image of react ..."
           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
           docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
-          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
-        
+      
+      - name: API_Build_and_push_image_to_ECR
+        id: api_build_push_image
+        if: ${{ needs.paths-filter.outputs.output2 }}== 'true'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          pwd
+          ls -ltr 
+          echo "Building image of django api ..."
+          echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
+          docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
           
-  deploy-app:
-    needs:  ["docker-build"]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout_Code
-        uses: actions/checkout@v3
-      - name: Loging in the ECR Registry
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          
+  # deploy-app:
+  #   needs:  ["docker-build"]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout_Code
+  #       uses: actions/checkout@v3
+  #     - name: Loging in the ECR Registry
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+  #         aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Authenticate with ECR
-        run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+  #     - name: Authenticate with ECR
+  #       run: |
+  #         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
         
-      - name: Loging in the EKS Cluster
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+  #     - name: Loging in the EKS Cluster
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
+  #         aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up kubectl
-        run: |
-          aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
+  #     - name: Set up kubectl
+  #       run: |
+  #         aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
 
-      - name: Deploy to django app into EKS
-        run: |
-           kubectl get all 
-           echo "Debuging ......................Debuging"
-           echo ${IMAGE_REACT} ${IMAGE_DJANGO}
-           TAG=${{ needs.docker-build.outputs.IMAGE_TAG }}
-           echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
-           echo "Debuging ......................Debuging"
-           pwd 
-           ls -al
-           cat ./k8s-django-react/react-manifeast/react-deployment.yaml
-           sed -i.bak "s|${IMAGE_REACT}.*|${IMAGE_REACT}:v$TAG|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
-           cat ./k8s-django-react/react-manifeast/react-deployment.yaml
-          #  kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
-      - name: Commit and push changes back to GitHub repository
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add ./k8s-django-react/react-manifeast/react-deployment.yaml
-          git commit -m "Update image tag in deployment.yaml"
-          git push origin main
+  #     - name: Deploy to django app into EKS
+  #       run: |
+  #          kubectl get all 
+  #          echo "Debuging ......................Debuging"
+  #          echo ${IMAGE_REACT} ${IMAGE_DJANGO}
+  #          TAG=${{ needs.docker-build.outputs.IMAGE_TAG }}
+  #          echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
+  #          echo "Debuging ......................Debuging"
+  #          pwd 
+  #          ls -al
+  #          cat ./k8s-django-react/react-manifeast/react-deployment.yaml
+  #          sed -i.bak "s|${IMAGE_REACT}.*|${IMAGE_REACT}:v$TAG|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
+  #          cat ./k8s-django-react/react-manifeast/react-deployment.yaml
+  #         #  kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
+  #     - name: Commit & Push changes
+  #       uses: actions-js/push@master
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         author_email: 'actions@cloudyninjas.com'
+  #         author_name: 'Github Actions'
+  #         message: 'Updated image tag $TAG in react deployment yaml'
