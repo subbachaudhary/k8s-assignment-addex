@@ -138,9 +138,11 @@ jobs:
            TAG=${{ needs.docker-build.outputs.IMAGE_TAG }}
            echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
            if [[ ${{ needs.paths-filter.outputs.output1 }} == "true" ]] ; then
+               echo "Previous image tag"
                cat ./k8s-django-react/react-manifeast/react-deployment.yaml | grep -i "${IMAGE_REACT}"
                sed -i.bak "s|${IMAGE_REACT}.*|${IMAGE_REACT}:v$TAG|g" ./k8s-django-react/react-manifeast/react-deployment.yaml
-               cat ./k8s-django-react/react-manifeast/react-deployment.yaml
+               cat ./k8s-django-react/react-manifeast/react-deployment.yaml | grep -i "${IMAGE_REACT}"
+               echo "Updated image tag"
                kubectl apply -f ./k8s-django-react/react-manifeast/react-deployment.yaml
 
            fi
@@ -149,9 +151,11 @@ jobs:
            TAG=${{ needs.docker-build.outputs.IMAGE_TAG }}
            echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
            if [[ ${{ needs.paths-filter.outputs.output1 }} == "true" ]] ; then
+              echo "Previous image tag"
               cat ./k8s-django-react/django-api-manifeast/django-deployment.yaml | grep -i "${IMAGE_DJANGO}"
               sed -i.bak "s|${IMAGE_DJANGO}.*|${IMAGE_DJANGO}:v$TAG|g" ./k8s-django-react/django-api-manifeast/django-deployment.yaml
-              cat ./k8s-django-react/django-api-manifeast/django-deployment.yaml
+              cat ./k8s-django-react/django-api-manifeast/django-deployment.yaml | grep -i "${IMAGE_DJANGO}"
+              echo "Updated image tag"
               kubectl apply -f ./k8s-django-react/django-api-manifeast/django-deployment.yaml
            fi
           
