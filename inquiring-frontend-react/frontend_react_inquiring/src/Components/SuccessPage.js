@@ -20,7 +20,7 @@ function SuccessPage() {
         <h4 className="alert-heading">Thanks {name} successfully submitted !!!</h4>
         <p>Hi {name}, your inquiry has been recorded. Our team will be auto-forwarded to the respective department. To get updates on your inquiry, please sign up and log in. Then you can view your message.</p>
         <hr/>
-        <p className="mb-0">Please contact us again if you have any further inquiries.</p>
+        <p className="mb-0">Please contact us again if you have any further inquiry.</p>
       </div>
     </div>
   );
