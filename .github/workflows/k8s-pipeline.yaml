@@ -85,7 +85,8 @@ jobs:
           ls -ltr 
           echo "Building image of react ..."
           echo $REGISTRY/${REACT_ECR_REPOSITORY}:$IMAGE_TAG
-          docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
+          echo ${{ needs.paths-filter.outputs.output1 }}
+          # docker build -t $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG -f inquiring-frontend-react/frontend_react_inquiring/Dockerfile ./inquiring-frontend-react/frontend_react_inquiring && docker push $REGISTRY/${REACT_ECR_REPOSITORY}:v$IMAGE_TAG
       
       - name: API_Build_and_push_image_to_ECR
         id: api_build_push_image
@@ -97,7 +98,8 @@ jobs:
           ls -ltr 
           echo "Building image of django api ..."
           echo $REGISTRY/${DJANGO_ECR_REPOSITORY}:$IMAGE_TAG
-          docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
+          echo ${{ needs.paths-filter.outputs.output2 }}
+          # docker build -t $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG -f backend_drf_inquiring/Dockerfile.prod ./backend_drf_inquiring && docker push $REGISTRY/${DJANGO_ECR_REPOSITORY}:v$IMAGE_TAG
           
           
   # deploy-app:
