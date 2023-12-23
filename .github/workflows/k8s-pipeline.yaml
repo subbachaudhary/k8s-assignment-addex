@@ -66,31 +66,31 @@ jobs:
     steps:
       - name: Checkout_Code
         uses: actions/checkout@v3
-      # - name: Loging in the ECR Registry
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
-      #     aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      - name: Loging in the ECR Registry
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ECR_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # - name: Authenticate with ECR
-      #   run: |
-      #     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - name: Authenticate with ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
         
-      # - name: Loging in the EKS Cluster
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
-      #     aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      - name: Loging in the EKS Cluster
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.EKS_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.EKS_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # - name: Set up kubectl
-      #   run: |
-      #     aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
+      - name: Set up kubectl
+        run: |
+          aws eks --region $AWS_REGION update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}   
 
       - name: Deploy to django app into EKS
         run: |
-          #  kubectl get all 
+           kubectl get all 
            echo "Debuging ......................Debuging"
            echo ${IMAGE_REACT} ${IMAGE_DJANGO}
            echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
