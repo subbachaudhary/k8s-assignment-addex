@@ -90,7 +90,7 @@ jobs:
 
       - name: Deploy to django app into EKS
         run: |
-           kubectl get all 
+          #  kubectl get all 
            echo "Debuging ......................Debuging"
            echo ${IMAGE_REACT} ${IMAGE_DJANGO}
            echo ${{ needs.docker-build.outputs.IMAGE_TAG }}
