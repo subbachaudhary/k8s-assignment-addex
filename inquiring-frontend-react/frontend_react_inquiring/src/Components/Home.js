@@ -52,7 +52,7 @@ function App() {
               window.location.href = redirectUrl;
         }
         else{
-          console.log("Error submitting form")
+          console.log("Error submitting form ...")
         }
       })
       .catch((error) => {
